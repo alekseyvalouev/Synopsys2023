@@ -3,6 +3,51 @@ import numpy as np
 import cv2
 import time
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __add__(self, point):
+        return Point(self.x + point.x, self.y + point.y)
+    def __sub__(self, point):
+        return Point(self.x - point.x, self.y - point.y)
+    def cross(self, point):
+        return (self.x * point.y, self.y * point.x)
+
+def invert_polygon(points):
+    out = []
+    for point in points:
+        out.append(Point(-point.x, -point.y))
+    return out
+
+def reorder_polygon(points):
+    pos = 0
+    for i in range(1, len(points)):
+        if (points[i].y < points[pos].y or (points[i].y == points[pos].y and points[i].x < points[pos].x)):
+            pos = i
+    return np.roll(points, -1*pos)
+
+def minkowski(polygon_a, polygon_b):
+    polygon_b = invert_polygon(polygon_b)
+    polygon_a = reorder_polygon(polygon_a)
+    polygon_b = reorder_polygon(polygon_b)
+    polygon_a.append(polygon_a[0])
+    polygon_a.append(polygon_a[1])
+    polygon_b.append(polygon_b[0])
+    polygon_b.append(polygon_b[1])
+
+    out = []
+    i = 0
+    j = 0
+    while (i < polygon_a.size()-2 or j < polygon_b.size()-2):
+        out.append(polygon_a[i] + polygon_b[j])
+        cross = (polygon_a[i + 1] - polygon_a[i]).cross(polygon_b[j + 1] - polygon_b[j])
+        if (cross >= 0):
+            i = i + 1
+        if (cross <= 0):
+            j = j + 1
+    return out
+
 def calculate_block_mean_image(image):
     start = time.perf_counter()
     
@@ -11,6 +56,7 @@ def calculate_block_mean_image(image):
     w = image.shape[1]
 
     out = cv2.resize(image, (int(w/2),int(h/2)))[:,:,0]
+    out = out.astype(np.intc)
     
     """"
     out = np.zeros((int(h/2),int(w/2),1), np.intc)
