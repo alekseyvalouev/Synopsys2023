@@ -4,7 +4,7 @@ import pyximport; pyximport.install()
 from handcrafted_utils import *
 
 if (__name__ == "__main__"):
-    cap = cv2.VideoCapture('../../video_train_set/train-10.avi')
+    cap = cv2.VideoCapture('../../Training_Data/video_train_set/train-10.avi')
     ind = 0
     while (True):
         ret, frame = cap.read()
